@@ -1,9 +1,14 @@
-# Northcoders News API
+#News API
 
-For instructions, please head over to [L2C NC News](https://l2c.northcoders.com/courses/be/nc-news).
+---------
 
+1. Create a .env File
+In your project, create files named .env.test && .env.development with the content:
 
+.env.test
+PGDATABASE=database_name_test
 
---- 
+.env.development
+PGDATABASE=database_name
 
-This portfolio project was created as part of a Digital Skills Bootcamp in Software Engineering provided by [Northcoders](https://northcoders.com/)
+2. 
