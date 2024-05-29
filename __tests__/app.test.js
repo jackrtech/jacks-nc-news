@@ -114,12 +114,89 @@ describe('GET /api/articles', () => {
 })
 
 describe('GET /api/articles/article_id/comments', () => {
-    test('GET:200 Responds array of comments for select article', () => {
+    test('GET:200 Responds array of correct data types for comment object ', () => {
         return request(app)
-        .get('/api/articles/1/comments')
-        .expect(200)
-        .then(({ body }) => [
-            console.log(body)
-        ])
+            .get('/api/articles/1/comments')
+            .expect(200)
+            .then(({ body }) => {
+                expect(Array.isArray(body.comments)).toBe(true)
+                body.comments.forEach(comment => {
+                    expect(comment).toEqual(
+                        expect.objectContaining({
+                            comment_id: expect.any(Number),
+                            votes: expect.any(Number),
+                            created_at: expect.any(String),
+                            author: expect.any(String),
+                            body: expect.any(String),
+                            article_id: expect.any(Number),
+                        })
+                    );
+                });
+            })
     })
+    test('GET:200 Responds array of correct comments for selected article', () => {
+        return request(app)
+            .get('/api/articles/6/comments')
+            .expect(200)
+            .then(({ body }) => {
+                expect(Array.isArray(body.comments)).toBe(true)
+                //console.log(body.comments)
+                body.comments.forEach(comment => {
+                    expect(comment).toEqual(
+                        expect.objectContaining({
+                            comment_id: 16,
+                            votes: 1,
+                            created_at: '2020-10-11T15:23:00.000Z',
+                            author: 'butter_bridge',
+                            body: 'This is a bad article name',
+                            article_id: 6,
+                        })
+                    );
+                });
+            })
+    })
+    test('GET:404 Responds with 404 for a non-existing article ID', () => {
+        return request(app)
+            .get('/api/articles/9999/comments')
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe('Article not found');
+            });
+    });
+    test('GET:400 Responds with 400 for an invalid article ID', () => {
+        return request(app)
+            .get('/api/articles/hello/comments')
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe('Bad request');
+            });
+    });
 })
+
+
+// describe('POST /api/articles/:article_id/comments', () => {
+//     test('POST:201 Responds with the correct posted comment', () => {
+//         return request(app)
+//             .post('/api/articles/1/comments')
+//             .send({ username: 'butter_bridge', body: 'this is a comment' })
+//             .expect(201)
+//             .then(({ body }) => {
+//                 console.log('TEST')
+//                 expect(body.comment).toHaveProperty('comment_id');
+//                 expect(body.comment).toHaveProperty('username', 'username1');
+//                 expect(body.comment).toHaveProperty('body', 'this is a comment');
+//                 expect(body.comment).toHaveProperty('article_id', 1);
+//                 expect(body.comment).toHaveProperty('created_at');
+//             });
+//     });
+
+//     test('POST:400 Responds with an error message when request body is incomplete', () => {
+//         return request(app)
+//             .post('/api/articles/1/comments')
+//             .send({ username: 'test_user' })
+//             .expect(400)
+//             .then(({ body }) => {
+//                 expect(body).toHaveProperty('msg', 'Bad request');
+//             });
+//     });
+// });
