@@ -112,3 +112,14 @@ describe('GET /api/articles', () => {
             })
     })
 })
+
+describe('GET /api/articles/article_id/comments', () => {
+    test('GET:200 Responds array of comments for select article', () => {
+        return request(app)
+        .get('/api/articles/1/comments')
+        .expect(200)
+        .then(({ body }) => [
+            console.log(body)
+        ])
+    })
+})
