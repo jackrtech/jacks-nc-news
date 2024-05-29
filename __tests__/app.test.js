@@ -15,7 +15,7 @@ afterAll(() => {
 })
 
 describe('GET /api/topics', () => {
-    test('Responds with an array containing the topics', () => {
+    test('GET:200 Responds with an array containing the topics', () => {
         return request(app)
             .get('/api/topics').expect(200).then(({ body }) => {
                 expect(body.topics.length > 0).toBe(true)
@@ -31,12 +31,73 @@ describe('GET /api/topics', () => {
 });
 
 describe('GET /api', () => {
-    test('Responds with an object containing a description of all available endpoints', () => {
+    test('GET:200 Responds with an object containing a description of all available endpoints', () => {
         return request(app)
-        .get('/api')
+            .get('/api')
+            .expect(200)
+            .then(({ body }) => {
+                expect(body.endpoints).toEqual(endpoints)
+            })
+    })
+})
+
+describe('GET /api/articles/:article_id', () => {
+    test('GET:200 Responds with an article object containing the correct data', () => {
+        return request(app)
+            .get('/api/articles/1')
+            .expect(200)
+            .then(({ body }) => {
+                expect(body.article.article_id).toBe(1)
+                expect(body.article.title).toBe('Living in the shadow of a great man')
+                expect(body.article.topic).toBe('mitch')
+                expect(body.article.author).toBe('butter_bridge')
+                expect(body.article.body).toBe('I find this existence challenging')
+                expect(body.article.created_at).toBe('2020-07-09T20:11:00.000Z')
+                expect(body.article.votes).toBe(100)
+                expect(body.article.article_img_url).toBe('https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700')    
+            })
+    })
+    test('GET:200 Responds with an article object containing the correct data', () => {
+        return request(app)
+            .get('/api/articles/3')
+            .expect(200)
+            .then(({ body }) => {
+                expect(body.article.article_id).toBe(3)
+                expect(body.article.title).toBe("Eight pug gifs that remind me of mitch")
+                expect(body.article.topic).toBe('mitch')
+                expect(body.article.author).toBe('icellusedkars')
+                expect(body.article.body).toBe('some gifs')
+                expect(body.article.created_at).toBe('2020-11-03T09:12:00.000Z')
+                expect(body.article.votes).toBe(0)
+                expect(body.article.article_img_url).toBe('https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700')
+            })
+    })
+    test('GET:404 sends an appropriate status and error message when given a valid but non-existent id', () => {
+        return request(app)
+        .get('/api/articles/999')
+        .expect(404)
+            .then((response) => {
+                //console.log(response.body, 'body<<<<<<<<')
+                expect(response.body.msg).toBe('article does not exist');
+            });
+    })
+    test('GET:400 sends an appropriate status and error message when given an invalid id', () => {
+        return request(app)
+          .get('/api/articles/not-a-article')
+          .expect(400)
+          .then((response) => {
+            expect(response.body.msg).toBe('Bad request');
+          });
+      });
+})
+
+describe('GET /api/articles', () => {
+    test('GET:200 Responds with an array of article objects', () => {
+        return request(app)
+        .get('/api/articles')
         .expect(200)
-        .then(({ body }) => {
-            expect(body.endpoints).toEqual(endpoints)
+        .then((response) => {
+            console.log(response)
         })
     })
 })
