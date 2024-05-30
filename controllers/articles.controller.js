@@ -1,4 +1,5 @@
-const { selectArticleById, selectAllArticles, selectArticleComments, insertArticleComments } = require('../models/articles.model')
+const { selectArticleById, selectAllArticles, selectArticleComments, insertArticleComments, updateArticleVotes } = require('../models/articles.model')
+
 
 exports.getArticleById = (req, res, next) => {
     const { article_id } = req.params
@@ -6,16 +7,17 @@ exports.getArticleById = (req, res, next) => {
         res.status(200).send({ article })
     }).catch((err) => {
         next(err)
-    })
-}
+    });
+};
+
 
 exports.getAllArticles = (req, res, next) => {
     selectAllArticles().then((articles) => {
         res.status(200).send({ articles })
     }).catch((err) => {
         next(err)
-    })
-}
+    });
+};
 
 exports.getArticleComments = (req, res, next) => {
     const { article_id } = req.params;
@@ -23,8 +25,9 @@ exports.getArticleComments = (req, res, next) => {
         res.status(200).send({ comments })
     }).catch((err) => {
         next(err)
-    })
-}
+    });
+};
+
 
 exports.postArticleComments = (req, res, next) => {
     const { article_id } = req.params;
@@ -40,4 +43,22 @@ exports.postArticleComments = (req, res, next) => {
             //console.log(comment, '<CONTROLLER')
             res.status(201).send({ comment });
         }).catch(next);
+};
+
+
+exports.patchArticleVotes = (req, res, next) => {
+    const { article_id } = req.params;
+    const { votes } = req.body;
+
+    if (typeof votes !== 'number') {
+        return res.status(400).send({ msg: 'Invalid Votes Value' });
+    }
+
+    
+
+    updateArticleVotes(article_id, votes)
+        .then((updatedArticle) => {
+            res.status(200).send({ article: updatedArticle });
+        })
+        .catch(next);
 };
