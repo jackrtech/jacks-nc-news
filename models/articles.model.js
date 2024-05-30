@@ -21,9 +21,6 @@ exports.selectAllArticles = () => {
     GROUP BY articles.article_id
     ORDER BY articles.created_at DESC;`)
         .then((result) => {
-            if (result.rows.length === 0) {
-                return Promise.reject({ status: 999, msg: 'error message' })
-            }  //unsure on what possible errors I can test with this one
             return result.rows
         })
 }
@@ -42,16 +39,14 @@ exports.selectArticleComments = (article_id) => {
         })
 }
 
-exports.insertArticleComments = (article_id, username, body) => {
-    console.log(article_id, username, body)
+exports.insertArticleComments = (article_id, author, body) => {
     return db.query(`
-    INSERT INTO comments (article_id, username, body) 
-    VALUES ($1, $2, $3) 
-    RETURNING comment_id`,
-    [article_id, username, body])
+    INSERT INTO comments(article_id, author, body) 
+    VALUES($1, $2, $3) 
+    RETURNING *`,
+    [article_id, author, body])
         .then((result) => {
-            console.log(result)
-            console.log('query complete')
-            return result.rows[0];
-        });
+
+            return result;
+        })
 };

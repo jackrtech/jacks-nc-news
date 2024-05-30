@@ -18,30 +18,33 @@ app.get('/api/articles/:article_id/comments', getArticleComments)
 
 
 
-app.post('/api/articles/:article_id/comments', postArticleComments)
-console.log('app.js')
+app.use('/api/articles/:article_id/comments', postArticleComments)
 
 
 app.use((err, req, res, next) => {
   if (err.code === '22P02') {
-    res.status(400).send({ msg: 'Bad request' })
-    next()
-  }
-  next(err)
+    res.status(400).send({ msg: 'Invalid Input' })
+  } else if (err.code === '23502') {
+    res.status(400).send({ msg: 'Required Key Missing' })
+  } else {
+    next(err)
+  } 
+
 })
 
 
 app.use((err, req, res, next) => {
   if (err.msg) {
     res.status(404).send({ msg: err.msg })
-    next()
+  } else {
+    next(err)
   }
-  next(err)
 })
 
 
 app.use((err, req, res, next) => {
-  res.status(500).send({ msg: 'Internal Server Error' })
+  console.log(err)
+  res.status(500).send({ msg: 'Internal ServRRRRRRRer Error' })
 })
 
 

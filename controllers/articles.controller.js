@@ -29,12 +29,15 @@ exports.getArticleComments = (req, res, next) => {
 exports.postArticleComments = (req, res, next) => {
     const { article_id } = req.params;
     const { username, body } = req.body;
-    console.log('CONTROLLER 1')
+    //console.log(article_id, username, body)
+    const validUsernames = ['butter_bridge', 'icellusedkars', 'rogersop', 'lurker']
+    if (!validUsernames.includes(username)) {
+        return res.status(400).send({ msg: 'Invalid username' });
+    }
 
     insertArticleComments(article_id, username, body)
         .then((comment) => {
-            console.log('CONTROLLER 2')
-            console.log(comment)
+            //console.log(comment, '<CONTROLLER')
             res.status(201).send({ comment });
         }).catch(next);
 };
