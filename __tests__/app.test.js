@@ -296,26 +296,47 @@ describe('PATCH /api/articles/:article_id', () => {
 
 describe('DELETE /api/comments/:comment_id', () => {
     test('DELETE:204 Responds by not finding the comment after the comment has been deleted', () => {
-      return request(app)
-        .delete('/api/comments/1')
-        .expect(204);
+        return request(app)
+            .delete('/api/comments/1')
+            .expect(204);
     });
-  
+
     test('DELETE:404 Responds with an error when the comment_id doesnt exist', () => {
-      return request(app)
-        .delete('/api/comments/999999')
-        .expect(404)
-        .then(({ body }) => {
-          expect(body.msg).toBe('Comment Not Found');
-        });
+        return request(app)
+            .delete('/api/comments/999999')
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe('Comment Not Found');
+            });
     });
-  
+
     test('DELETE:400 Responds with error when the comment_id is invalid', () => {
-      return request(app)
-        .delete('/api/comments/invalid-id')
-        .expect(400)
-        .then(({ body }) => {
-          expect(body.msg).toBe('Invalid Input');
-        });
+        return request(app)
+            .delete('/api/comments/invalid-id')
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe('Invalid Input');
+            });
     });
-  });
+});
+
+describe('GET /api/users', () => {
+    test('GET:200 Responds with an array of users', () => {
+        return request(app)
+            .get('/api/users')
+            .expect(200)
+            .then(({ body }) => {
+                expect(Array.isArray(body.users)).toBe(true);
+                expect(body.users.length > 0).toBe(true);
+                body.users.forEach((user) => {
+                    expect(user).toEqual(
+                        expect.objectContaining({
+                            username: expect.any(String),
+                            name: expect.any(String),
+                            avatar_url: expect.any(String)
+                        })
+                    );
+                });
+            });
+    });
+});

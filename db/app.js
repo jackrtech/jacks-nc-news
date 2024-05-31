@@ -2,8 +2,8 @@ const express = require('express')
 const app = express()
 const { getAllTopics } = require('../controllers/topics.controller')
 const { getEndpoints } = require('../controllers/endpoints.controller')
-const { deleteCommentController, getArticleById, getAllArticles, getArticleComments, postArticleComments, patchArticleVotes } = require('../controllers/articles.controller')
-
+const { getAllUsers, getArticleById, getAllArticles, patchArticleVotes } = require('../controllers/articles.controller')
+const { deleteCommentController, getArticleComments, postArticleComments } = require ('../controllers/comments.controller')
 app.use(express.json())
 
 app.get('/api/topics', getAllTopics)
@@ -22,6 +22,8 @@ app.patch('/api/articles/:article_id', patchArticleVotes);
 
 app.delete('/api/comments/:comment_id', deleteCommentController);
 
+app.get('/api/users', getAllUsers);
+
 app.use((err, req, res, next) => {
   if (err.code === '22P02') {
     res.status(400).send({ msg: 'Invalid Input' });
@@ -35,6 +37,8 @@ app.use((err, req, res, next) => {
     console.log(err);
     res.status(500).send({ msg: 'Internal Server Error' });
   }
-});
+})
+
+
 
 module.exports = { app }
