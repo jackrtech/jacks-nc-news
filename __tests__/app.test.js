@@ -4,6 +4,8 @@ const db = require('../db/connection')
 const data = require('../db/data/test-data/index')
 const seed = require('../db/seeds/seed')
 const endpoints = require('../endpoints.json')
+const { selectAllArticles } = require('../models/articles.model')
+require('jest-sorted')
 
 
 beforeEach(() => {
@@ -72,7 +74,7 @@ describe('GET /api/articles/:article_id', () => {
                 expect(body.article.article_img_url).toBe('https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700')
             })
     })
-    test('GET:404 sends an appropriate status and error message when given a valid but non-existent id', () => {
+    test('GET:404 Responds an appropriate status and error message when given a valid but non-existent id', () => {
         return request(app)
             .get('/api/articles/999')
             .expect(404)
@@ -81,12 +83,12 @@ describe('GET /api/articles/:article_id', () => {
                 expect(response.body.msg).toBe('article does not exist');
             });
     })
-    test('GET:400 sends an appropriate status and error message when given an invalid id', () => {
+    test('GET:400 Responds with an appropriate status and error message when given an invalid id', () => {
         return request(app)
             .get('/api/articles/not-a-article')
             .expect(400)
             .then((response) => {
-                expect(response.body.msg).toBe('Bad request');
+                expect(response.body.msg).toBe('Invalid Input');
             });
     });
 })
@@ -111,15 +113,115 @@ describe('GET /api/articles', () => {
                 })
             })
     })
+    test('Responds with articles sorted by created_at i descending order', () => {
+        return selectAllArticles()
+            .then((result) => {
+                //console.log(result)
+                expect(result).toBeSortedBy('created_at', { descending: true });
+            });
+    });
 })
 
 describe('GET /api/articles/article_id/comments', () => {
-    test('GET:200 Responds array of comments for select article', () => {
+    test('GET:200 Responds array of correct data types for comment object ', () => {
         return request(app)
-        .get('/api/articles/1/comments')
-        .expect(200)
-        .then(({ body }) => [
-            console.log(body)
-        ])
+            .get('/api/articles/1/comments')
+            .expect(200)
+            .then(({ body }) => {
+                expect(Array.isArray(body.comments)).toBe(true)
+                body.comments.forEach(comment => {
+                    expect(comment).toEqual(
+                        expect.objectContaining({
+                            comment_id: expect.any(Number),
+                            votes: expect.any(Number),
+                            created_at: expect.any(String),
+                            author: expect.any(String),
+                            body: expect.any(String),
+                            article_id: expect.any(Number),
+                        })
+                    );
+                });
+            })
     })
+    test('GET:200 Responds array of correct comments for selected article', () => {
+        return request(app)
+            .get('/api/articles/6/comments')
+            .expect(200)
+            .then(({ body }) => {
+                expect(Array.isArray(body.comments)).toBe(true)
+                //console.log(body.comments)
+                body.comments.forEach(comment => {
+                    expect(comment).toEqual(
+                        expect.objectContaining({
+                            comment_id: 16,
+                            votes: 1,
+                            created_at: '2020-10-11T15:23:00.000Z',
+                            author: 'butter_bridge',
+                            body: 'This is a bad article name',
+                            article_id: 6,
+                        })
+                    );
+                });
+            })
+    })
+    test('GET:404 Responds with 404 for a non-existing article ID', () => {
+        return request(app)
+            .get('/api/articles/9999/comments')
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe('Article not found');
+            });
+    });
+    test('GET:400 Responds with 400 for an invalid article ID', () => {
+        return request(app)
+            .get('/api/articles/hello/comments')
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe('Invalid Input');
+            });
+    });
 })
+
+
+describe('POST /api/articles/:article_id/comments', () => {
+    test('POST:201 Responds with the correct posted comment', () => {
+        return request(app)
+            .post('/api/articles/1/comments')
+            .send({ username: 'butter_bridge', body: 'this is a comment' })
+            .expect(201)
+            .then(({ body }) => {
+                console.log(body.comment.rows[0].body)
+                expect(body.comment.rows[0].body).toBe('this is a comment');
+
+            });
+    });
+    test('POST:201 Responds with the correct posted comment', () => {
+        return request(app)
+            .post('/api/articles/2/comments')
+            .send({ username: 'butter_bridge', body: 'this is another comment' })
+            .expect(201)
+            .then(({ body }) => {
+                console.log(body.comment.rows[0].body)
+                expect(body.comment.rows[0].body).toBe('this is another comment');
+            });
+    });
+
+    test('POST:400 Responds with an error message when request body is incomplete', () => {
+        return request(app)
+            .post('/api/articles/1/comments')
+            .send({ username: 'butter_bridge' })
+            .expect(400)
+            .then(({ body }) => {
+                expect(body).toHaveProperty('msg', 'Required Key Missing');
+            });
+    });
+    test('POST:400 Responds with error when username is invalid', () => {
+        return request(app)
+            .post('/api/articles/1/comments')
+            .send({ username: 'not_a_user', body: 'this is a comment' })
+            .expect(400)
+            .then(({ body }) => {
+                expect(body).toHaveProperty('msg', 'Invalid username');
+            });
+    });
+});
