@@ -129,6 +129,7 @@ describe('GET /api/articles/article_id/comments', () => {
             .expect(200)
             .then(({ body }) => {
                 expect(Array.isArray(body.comments)).toBe(true)
+                expect(body.comments.length > 0).toBe(true)
                 body.comments.forEach(comment => {
                     expect(comment).toEqual(
                         expect.objectContaining({
@@ -191,7 +192,8 @@ describe('POST /api/articles/:article_id/comments', () => {
             .expect(201)
             .then(({ body }) => {
                 //console.log(body.comment.rows[0].body)
-                expect(body.comment.rows[0].body).toBe('this is a comment');
+                expect(body.comment.rows[0].body).toBe('this is a comment')
+                expect(body.comment.rows[0].author).toBe('butter_bridge')
 
             });
     });
@@ -202,7 +204,8 @@ describe('POST /api/articles/:article_id/comments', () => {
             .expect(201)
             .then(({ body }) => {
                 //console.log(body.comment.rows[0].body)
-                expect(body.comment.rows[0].body).toBe('this is another comment');
+                expect(body.comment.rows[0].body).toBe('this is another comment')
+                expect(body.comment.rows[0].author).toBe('butter_bridge')
             });
     });
 
@@ -215,13 +218,31 @@ describe('POST /api/articles/:article_id/comments', () => {
                 expect(body).toHaveProperty('msg', 'Required Key Missing');
             });
     });
-    test('POST:400 Responds with error when username is invalid', () => {
+    test('POST:404 Responds with error when username is invalid', () => {
         return request(app)
             .post('/api/articles/1/comments')
             .send({ username: 'not_a_user', body: 'this is a comment' })
+            .expect(404)
+            .then(({ body }) => {
+                expect(body).toHaveProperty('msg', 'Article Not Found');
+            });
+    });
+    test('POST:400 Responds with error message when given invalid article id', () => {
+        return request(app)
+            .post('/api/articles/thisisaword/comments')
+            .send({ username: 'butter_bridge', body: 'this is a comment' })
             .expect(400)
             .then(({ body }) => {
-                expect(body).toHaveProperty('msg', 'Invalid username');
+                expect(body).toHaveProperty('msg', 'Invalid Input');
+            });
+    });
+    test('POST:404 Responds with error message when given a article id that doesnt exist', () => {
+        return request(app)
+            .post('/api/articles/999999999/comments')
+            .send({ username: 'butter_bridge', body: 'this is a comment' })
+            .expect(404)
+            .then(({ body }) => {
+                expect(body).toHaveProperty('msg', 'Article Not Found');
             });
     });
 });
@@ -250,6 +271,7 @@ describe('PATCH /api/articles/:article_id', () => {
             });
     });
 
+
     test('PATCH:400 Responds with error message when the votes is not a number', () => {
         return request(app)
             .patch('/api/articles/1')
@@ -260,13 +282,40 @@ describe('PATCH /api/articles/:article_id', () => {
             });
     });
 
-    // test('PATCH:404 Responds with error when article_id does not exist', () => {
-    //     return request(app)
-    //         .patch('/api/articles/999999999')
-    //         .send({ votes: 1 })
-    //         .expect(404)
-    //         .then(({ body }) => {
-    //             expect(body).toHaveProperty('msg', 'Article Not Found');
-    //         });
-    // });
+
+    test('PATCH:404 Responds with error when article id does not exist', () => {
+        return request(app)
+            .patch('/api/articles/999999999')
+            .send({ votes: 1 })
+            .expect(404)
+            .then(({ body }) => {
+                expect(body).toHaveProperty('msg', 'Article Not Found');
+            });
+    });
 });
+
+describe('DELETE /api/comments/:comment_id', () => {
+    test('DELETE:204 Responds by not finding the comment after the comment has been deleted', () => {
+      return request(app)
+        .delete('/api/comments/1')
+        .expect(204);
+    });
+  
+    test('DELETE:404 Responds with an error when the comment_id doesnt exist', () => {
+      return request(app)
+        .delete('/api/comments/999999')
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).toBe('Comment Not Found');
+        });
+    });
+  
+    test('DELETE:400 Responds with error when the comment_id is invalid', () => {
+      return request(app)
+        .delete('/api/comments/invalid-id')
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).toBe('Invalid Input');
+        });
+    });
+  });
