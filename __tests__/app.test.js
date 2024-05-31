@@ -190,7 +190,7 @@ describe('POST /api/articles/:article_id/comments', () => {
             .send({ username: 'butter_bridge', body: 'this is a comment' })
             .expect(201)
             .then(({ body }) => {
-                console.log(body.comment.rows[0].body)
+                //console.log(body.comment.rows[0].body)
                 expect(body.comment.rows[0].body).toBe('this is a comment');
 
             });
@@ -201,7 +201,7 @@ describe('POST /api/articles/:article_id/comments', () => {
             .send({ username: 'butter_bridge', body: 'this is another comment' })
             .expect(201)
             .then(({ body }) => {
-                console.log(body.comment.rows[0].body)
+                //console.log(body.comment.rows[0].body)
                 expect(body.comment.rows[0].body).toBe('this is another comment');
             });
     });
@@ -224,4 +224,49 @@ describe('POST /api/articles/:article_id/comments', () => {
                 expect(body).toHaveProperty('msg', 'Invalid username');
             });
     });
+});
+
+
+describe('PATCH /api/articles/:article_id', () => {
+    test('PATCH:200 Responds with the article when votes are incremented', () => {
+        return request(app)
+            .patch('/api/articles/1')
+            .send({ votes: 1 })
+            .expect(200)
+            .then(({ body }) => {
+                expect(body.article).toHaveProperty('article_id', 1);
+                expect(body.article).toHaveProperty('votes', expect.any(Number));
+            });
+    });
+
+    test('PATCH:200 Responds with the article when votes are decreased', () => {
+        return request(app)
+            .patch('/api/articles/1')
+            .send({ votes: -22 })
+            .expect(200)
+            .then(({ body }) => {
+                expect(body.article).toHaveProperty('article_id', 1);
+                expect(body.article).toHaveProperty('votes', expect.any(Number));
+            });
+    });
+
+    test('PATCH:400 Responds with error message when the votes is not a number', () => {
+        return request(app)
+            .patch('/api/articles/1')
+            .send({ votes: 'this is not a voteeee' })
+            .expect(400)
+            .then(({ body }) => {
+                expect(body).toHaveProperty('msg', 'Invalid Votes Value');
+            });
+    });
+
+    // test('PATCH:404 Responds with error when article_id does not exist', () => {
+    //     return request(app)
+    //         .patch('/api/articles/999999999')
+    //         .send({ votes: 1 })
+    //         .expect(404)
+    //         .then(({ body }) => {
+    //             expect(body).toHaveProperty('msg', 'Article Not Found');
+    //         });
+    // });
 });
