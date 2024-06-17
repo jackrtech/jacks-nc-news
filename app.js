@@ -4,7 +4,10 @@ const { getAllTopics } = require('./controllers/topics.controller')
 const { getEndpoints } = require('./controllers/endpoints.controller')
 const { getAllUsers, getArticleById, getAllArticles, patchArticleVotes } = require('./controllers/articles.controller')
 const { deleteCommentController, getArticleComments, postArticleComments } = require ('./controllers/comments.controller')
+const cors = require('cors')
+
 app.use(express.json())
+app.use(cors())
 
 app.get('/api/topics', getAllTopics)
 
