@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const { getAllTopics } = require('./controllers/topics.controller');
 const { getEndpoints } = require('./controllers/endpoints.controller');
-const { getAllUsers, getArticleById, getAllArticles, patchArticleVotes } = require('./controllers/articles.controller');
+const { getAllUsers, getArticleById, getAllArticles, patchArticleVotes, getArticlesByTopic } = require('./controllers/articles.controller');
 const { deleteCommentController, getArticleComments, postArticleComments } = require('./controllers/comments.controller');
 const cors = require('cors');
 

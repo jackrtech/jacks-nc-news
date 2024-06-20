@@ -1,5 +1,4 @@
-const { getAllUsers, selectArticleById, selectAllArticles, updateArticleVotes } = require('../models/articles.model')
-
+const { getAllUsers, selectArticleById, selectAllArticles, updateArticleVotes } = require('../models/articles.model');
 
 exports.getArticleById = (req, res, next) => {
     const { article_id } = req.params;
@@ -13,7 +12,6 @@ exports.getArticleById = (req, res, next) => {
         .catch(next);
 };
 
-
 exports.getAllArticles = (req, res, next) => {
     const { topic } = req.query;
 
@@ -26,8 +24,6 @@ exports.getAllArticles = (req, res, next) => {
         })
         .catch(next);
 };
-
-
 
 exports.patchArticleVotes = (req, res, next) => {
     const { article_id } = req.params;
@@ -47,8 +43,6 @@ exports.patchArticleVotes = (req, res, next) => {
         })
         .catch(next);
 };
-
-
 
 exports.getAllUsers = (req, res, next) => {
     getAllUsers()
