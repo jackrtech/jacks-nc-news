@@ -1,20 +1,22 @@
-const request = require('supertest')
-const { app } = require('../app')
-const db = require('../db/connection')
-const data = require('../db/data/test-data/index')
-const seed = require('../db/seeds/seed')
-const endpoints = require('../endpoints.json')
-const { selectAllArticles } = require('../models/articles.model')
-require('jest-sorted')
+const request = require('supertest');
+const { app } = require('../app');
+const db = require('../db/connection');
+const data = require('../db/data/test-data/index');
+const seed = require('../db/seeds/seed');
+const endpoints = require('../endpoints.json');
+const { selectAllArticles } = require('../models/articles.model');
+require('jest-sorted');
 
 
 beforeEach(() => {
-    return seed(data)
-})
+    return seed(data);
+});
+
 
 afterAll(() => {
-    db.end()
-})
+    db.end();
+});
+
 
 describe('GET /api/topics', () => {
     test('GET:200 Responds with an array containing the topics', () => {
@@ -32,6 +34,7 @@ describe('GET /api/topics', () => {
     });
 });
 
+
 describe('GET /api', () => {
     test('GET:200 Responds with an object containing a description of all available endpoints', () => {
         return request(app)
@@ -42,6 +45,7 @@ describe('GET /api', () => {
             })
     })
 })
+
 
 describe('GET /api/articles/:article_id', () => {
     test('GET:200 Responds with an article object containing the correct data', () => {
@@ -59,6 +63,7 @@ describe('GET /api/articles/:article_id', () => {
                 expect(body.article.article_img_url).toBe('https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700')
             })
     })
+
     test('GET:200 Responds with an article object containing the correct data', () => {
         return request(app)
             .get('/api/articles/3')
@@ -74,12 +79,12 @@ describe('GET /api/articles/:article_id', () => {
                 expect(body.article.article_img_url).toBe('https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700')
             })
     })
+
     test('GET:404 Responds an appropriate status and error message when given a valid but non-existent id', () => {
         return request(app)
             .get('/api/articles/999')
             .expect(404)
             .then((response) => {
-                //console.log(response.body, 'body<<<<<<<<')
                 expect(response.body.msg).toBe('article does not exist');
             });
     })
@@ -113,16 +118,45 @@ describe('GET /api/articles', () => {
                 })
             })
     })
-    test('Responds with articles sorted by created_at i descending order', () => {
+
+    test('Responds with articles sorted by created_at in descending order', () => {
         return selectAllArticles()
             .then((result) => {
-                //console.log(result)
                 expect(result).toBeSortedBy('created_at', { descending: true });
+            });
+    });
+
+    test('GET:200 Responds with articles filtered by topic when topic query is provided', () => {
+        const topic = 'mitch'; 
+        
+        return request(app)
+            .get('/api/articles')
+            .query({ topic })
+            .expect(200)
+            .then(({ body }) => {
+                expect(body.articles.length > 0).toBe(true);
+                body.articles.forEach((article) => {
+                    expect(article.topic).toBe(topic);
+                });
+            });
+    });
+
+    test('GET:404 Responds with 404 when no articles match the provided topic', () => {
+        const nonExistentTopic = 'nonexistenttopic'; 
+        
+        return request(app)
+            .get('/api/articles')
+            .query({ topic: nonExistentTopic })
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe('No articles found for this topic');
             });
     });
 })
 
+
 describe('GET /api/articles/article_id/comments', () => {
+
     test('GET:200 Responds array of correct data types for comment object ', () => {
         return request(app)
             .get('/api/articles/1/comments')
@@ -144,13 +178,13 @@ describe('GET /api/articles/article_id/comments', () => {
                 });
             })
     })
+
     test('GET:200 Responds array of correct comments for selected article', () => {
         return request(app)
             .get('/api/articles/6/comments')
             .expect(200)
             .then(({ body }) => {
                 expect(Array.isArray(body.comments)).toBe(true)
-                //console.log(body.comments)
                 body.comments.forEach(comment => {
                     expect(comment).toEqual(
                         expect.objectContaining({
@@ -165,6 +199,7 @@ describe('GET /api/articles/article_id/comments', () => {
                 });
             })
     })
+
     test('GET:404 Responds with 404 for a non-existing article ID', () => {
         return request(app)
             .get('/api/articles/9999/comments')
@@ -173,6 +208,7 @@ describe('GET /api/articles/article_id/comments', () => {
                 expect(body.msg).toBe('Article not found');
             });
     });
+
     test('GET:400 Responds with 400 for an invalid article ID', () => {
         return request(app)
             .get('/api/articles/hello/comments')
@@ -185,25 +221,26 @@ describe('GET /api/articles/article_id/comments', () => {
 
 
 describe('POST /api/articles/:article_id/comments', () => {
+
     test('POST:201 Responds with the correct posted comment', () => {
         return request(app)
             .post('/api/articles/1/comments')
             .send({ username: 'butter_bridge', body: 'this is a comment' })
             .expect(201)
             .then(({ body }) => {
-                //console.log(body.comment.rows[0].body)
                 expect(body.comment.rows[0].body).toBe('this is a comment')
                 expect(body.comment.rows[0].author).toBe('butter_bridge')
 
             });
     });
+
+
     test('POST:201 Responds with the correct posted comment', () => {
         return request(app)
             .post('/api/articles/2/comments')
             .send({ username: 'butter_bridge', body: 'this is another comment' })
             .expect(201)
             .then(({ body }) => {
-                //console.log(body.comment.rows[0].body)
                 expect(body.comment.rows[0].body).toBe('this is another comment')
                 expect(body.comment.rows[0].author).toBe('butter_bridge')
             });
@@ -218,6 +255,7 @@ describe('POST /api/articles/:article_id/comments', () => {
                 expect(body).toHaveProperty('msg', 'Required Key Missing');
             });
     });
+
     test('POST:404 Responds with error when username is invalid', () => {
         return request(app)
             .post('/api/articles/1/comments')
@@ -227,6 +265,7 @@ describe('POST /api/articles/:article_id/comments', () => {
                 expect(body).toHaveProperty('msg', 'Article Not Found');
             });
     });
+
     test('POST:400 Responds with error message when given invalid article id', () => {
         return request(app)
             .post('/api/articles/thisisaword/comments')
@@ -236,6 +275,7 @@ describe('POST /api/articles/:article_id/comments', () => {
                 expect(body).toHaveProperty('msg', 'Invalid Input');
             });
     });
+
     test('POST:404 Responds with error message when given a article id that doesnt exist', () => {
         return request(app)
             .post('/api/articles/999999999/comments')
@@ -295,6 +335,7 @@ describe('PATCH /api/articles/:article_id', () => {
 });
 
 describe('DELETE /api/comments/:comment_id', () => {
+    
     test('DELETE:204 Responds by not finding the comment after the comment has been deleted', () => {
         return request(app)
             .delete('/api/comments/1')

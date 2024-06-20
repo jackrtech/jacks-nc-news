@@ -15,12 +15,18 @@ exports.getArticleById = (req, res, next) => {
 
 
 exports.getAllArticles = (req, res, next) => {
-    selectAllArticles()
+    const { topic } = req.query;
+
+    selectAllArticles(topic)
         .then((articles) => {
+            if (articles.length === 0) {
+                return Promise.reject({ status: 404, msg: 'No articles found for this topic' });
+            }
             res.status(200).send({ articles });
         })
         .catch(next);
 };
+
 
 
 exports.patchArticleVotes = (req, res, next) => {

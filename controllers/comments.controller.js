@@ -2,6 +2,7 @@ const { deleteComment, selectArticleComments, insertArticleComments } = require(
 
 exports.deleteCommentController = (req, res, next) => {
     const { comment_id } = req.params;
+    console.log(comment_id, '<< COMMENT ID')
 
     deleteComment(comment_id)
         .then((result) => {

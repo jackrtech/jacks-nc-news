@@ -12,18 +12,41 @@ exports.selectArticleById = (article_id) => {
         })
 }
 
-exports.selectAllArticles = () => {
-    return db.query(`
+
+
+
+exports.selectAllArticles = (topic) => {
+    let query = `
     SELECT articles.article_id, articles.title, articles.topic, articles.author, articles.created_at, articles.votes, articles.article_img_url, 
     COUNT(comments.comment_id) AS comment_count
     FROM articles
     LEFT JOIN comments ON articles.article_id = comments.article_id
+    `;
+
+    const queryParams = [];
+
+    if (topic) {
+        query += ` WHERE articles.topic = $1 `;
+        queryParams.push(topic);
+    }
+
+    query += `
     GROUP BY articles.article_id
-    ORDER BY articles.created_at DESC;`)
+    ORDER BY articles.created_at DESC;
+    `;
+
+    return db.query(query, queryParams)
         .then((result) => {
-            return result.rows
+            return result.rows;
         })
-}
+        .catch((error) => {
+            console.error('Database Error:', error);
+            return Promise.reject({ status: 500, msg: 'Internal Server Error' });
+        });
+};
+
+
+
 
 exports.updateArticleVotes = (article_id, inc_votes) => {
     return db.query(`
